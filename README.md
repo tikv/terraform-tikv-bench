@@ -1,4 +1,4 @@
-You'll need a DO API token (free credit link:), `openssh` (with `scp`), and `terraform` to run this benchmark.
+You'll need a DO API token ([$50 credit referral](https://m.do.co/c/b6156cf29450)), `openssh` (with `scp`), and `terraform` to run this benchmark. You can get these tools from your friendly package manager. (Don't have one? [Win](https://scoop.sh/)/[Mac](https://brew.sh/))
 
 First, you'll need to roll an SSH key next into the `key` and `key.pub` files.
 
