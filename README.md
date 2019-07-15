@@ -12,6 +12,38 @@ Second, you need to initialize Terraform.
 terraform init
 ```
 
-Finally, you can run the benchmark with `terraform apply`.
+Third, you'll need to set up your `./terraform.tfvars` file.
+
+```tf
+do_token="Your_token_goes_here"
+```
+
+Finally, you can run the benchmark:
+
+```bash
+# Warning: This **will** cost you money hourly until you run `terraform destroy`
+terraform apply
+```
 
 You'll find results in `results-first` and `results-second` folders. By default, first is `2.1.14`, second is `3.0.0`.
+
+After, **make sure to run** `terraform destroy` so you don't get additional charges.
+
+# Knobs
+
+There are various knobs you can tweak in your `terraform.tfvars`. For a full list of knobs you can look at the variables in the `bench.tf` file.
+
+**Warning:** Scaling `pd` is not supported yet.
+
+You can scale the number of `tikv` nodes:
+
+```tf
+tikv_count = 1
+```
+
+You can change the docker images benchmarked:
+
+```tf
+tikv_image = "you/tikv:latest"
+pd_image = "you/pd:latest"
+```
