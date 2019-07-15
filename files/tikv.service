@@ -1,0 +1,18 @@
+[Unit]
+Description=TiKV
+Wants=docker.socket
+After=docker.service
+
+[Service]
+LimitNOFILE=1000000
+LimitSTACK=10485760
+ExecStart=/usr/bin/sh -c "docker run --name=tikv --rm --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 -v /etc/tikv.toml:/config.toml ${image} --addr $(ip addr show ${private_adapter} | grep -Po \'inet \K[\d.]+\'):20160 --pd-endpoints ${format("%s:2379", pd.ipv4_address_private)} --config /config.toml"
+ExecStartPre=-/usr/bin/docker pull ${image}
+ExecStop=/usr/bin/docker stop tikv
+ExecStopPost=/usr/bin/docker rm -f tikv
+ExecReload=/usr/bin/docker restart tikv
+Restart=always
+RestartSec=15s
+
+[Install]
+WantedBy=multi-user.target

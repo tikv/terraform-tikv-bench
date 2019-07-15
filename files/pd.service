@@ -1,0 +1,22 @@
+[Unit]
+Description=PD
+Wants=docker.socket
+After=docker.service
+
+[Service]
+LimitNOFILE=1000000
+LimitSTACK=10485760
+%{ if bootstrap != "" }
+    ExecStart=/usr/bin/sh -c "/usr/bin/docker run --name=pd --rm --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 -v /etc/pd.toml:/config.toml ${image} --client-urls=\"http://$(ip addr show ${private_adapter} | grep -Po \'inet \K[\d.]+\'):2379\" --peer-urls=\"http://$(ip addr show ${private_adapter} | grep -Po \'inet \K[\d.]+\'):2380\" --join=\"http://${bootstrap}:2380\" --config /config.toml"
+%{ else }
+    ExecStart=/usr/bin/sh -c "/usr/bin/docker run --name=pd --rm --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 -v /etc/pd.toml:/config.toml ${image} --client-urls=\"http://$(ip addr show ${private_adapter} | grep -Po \'inet \K[\d.]+\'):2379\" --peer-urls=\"http://$(ip addr show ${private_adapter} | grep -Po \'inet \K[\d.]+\'):2380\" --config /config.toml"
+%{ endif }
+ExecStartPre=-/usr/bin/docker pull ${image}
+ExecStop=/usr/bin/docker stop pd
+ExecStopPost=/usr/bin/docker rm -f pd
+ExecReload=/usr/bin/docker restart pd
+Restart=always
+RestartSec=15s
+
+[Install]
+WantedBy=multi-user.target
