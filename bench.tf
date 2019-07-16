@@ -14,7 +14,7 @@ variable "tikv_first_image" { default  = "pingcap/tikv:v2.1.14" }
 variable "tikv_second_image" { default  = "pingcap/tikv:v3.0.0" }
 
 variable "ycsb_size" { default = "s-8vcpu-32gb" }
-variable "ycsb_count" { default  = 1 }
+variable "ycsb_count" { default  = 3 }
 variable "ycsb_operationcount" { default  = 1000000 }
 variable "ycsb_recordcount" { default  = 1000000 }
 variable "ycsb_api" { default  = "raw" }
@@ -180,7 +180,7 @@ resource "digitalocean_droplet" "ycsb" {
 
     connection {
         type     = "ssh"
-        host     = "${digitalocean_droplet.ycsb[count.index].ipv4_address}"
+        host     = "${self.ipv4_address}"
         user     = "root"
         private_key = "${file("key")}"
     }
@@ -200,35 +200,57 @@ resource "digitalocean_droplet" "ycsb" {
             "apt-get install docker.io --yes",
             "sysctl --system",
             "systemctl enable docker --now",
-            "mkdir -p /results-first",
-            "docker run --name=ycsb-first-load-workloada --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloada -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
-            "docker run --name=ycsb-first-run-workloada --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloada -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p requestdistribution=${var.ycsb_distribution}",
-            "docker logs ycsb-first-load-workloada > /results-first/load-workloada",
-            "docker logs ycsb-first-run-workloada > /results-first/run-workloada",
-            //
-            "docker run --name=ycsb-first-load-workloadb --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloadb -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
-            "docker run --name=ycsb-first-run-workloadb --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloadb -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p requestdistribution=${var.ycsb_distribution}",
-            "docker logs ycsb-first-load-workloadb > /results-first/load-workloadb",
-            "docker logs ycsb-first-run-workloadb > /results-first/run-workloadb",
-            //
-            "docker run --name=ycsb-first-load-workloadc --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloadc -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
-            "docker run --name=ycsb-first-run-workloadc --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloadc -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p requestdistribution=${var.ycsb_distribution}",
-            "docker logs ycsb-first-load-workloadc > /results-first/load-workloadc",
-            "docker logs ycsb-first-run-workloadc > /results-first/run-workloadc",
+        ]
+    }
+}
 
+resource "null_resource" "ycsb_first" {
+    count = "${var.ycsb_count}"
+    triggers = {
+        pre = "${join(",", digitalocean_droplet.ycsb.*.id)}"
+    }
+    depends_on = [digitalocean_droplet.ycsb]
+
+    connection {
+        type     = "ssh"
+        host     = "${digitalocean_droplet.ycsb[count.index].ipv4_address}"
+        user     = "root"
+        private_key = "${file("key")}"
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "mkdir -p /results-first-${count.index}",
+            "docker run --name=ycsb-first-load-workloada --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloada -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p insertstart=${floor(var.ycsb_recordcount / var.ycsb_count) * count.index} -p insertcount=${floor(var.ycsb_recordcount / var.ycsb_count)}",
+            "docker run --name=ycsb-first-run-workloada --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloada -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p requestdistribution=${var.ycsb_distribution}",
+            "docker logs ycsb-first-load-workloada > /results-first-${count.index}/load-workloada",
+            "docker logs ycsb-first-run-workloada > /results-first-${count.index}/run-workloada",
+            //
+            "docker run --name=ycsb-first-load-workloadb --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloadb -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p insertstart=${floor(var.ycsb_recordcount / var.ycsb_count) * count.index} -p insertcount=${floor(var.ycsb_recordcount / var.ycsb_count)}",
+            "docker run --name=ycsb-first-run-workloadb --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloadb -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p requestdistribution=${var.ycsb_distribution}",
+            "docker logs ycsb-first-load-workloadb > /results-first-${count.index}/load-workloadb",
+            "docker logs ycsb-first-run-workloadb > /results-first-${count.index}/run-workloadb",
+            //
+            "docker run --name=ycsb-first-load-workloadc --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloadc -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p insertstart=${floor(var.ycsb_recordcount / var.ycsb_count) * count.index} -p insertcount=${floor(var.ycsb_recordcount / var.ycsb_count)}",
+            "docker run --name=ycsb-first-run-workloadc --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloadc -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p requestdistribution=${var.ycsb_distribution}",
+            "docker logs ycsb-first-load-workloadc > /results-first-${count.index}/load-workloadc",
+            "docker logs ycsb-first-run-workloadc > /results-first-${count.index}/run-workloadc",
         ]
     }
 
+    
     provisioner "local-exec" {
-        command = "scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i key root@${self.ipv4_address}:/results-first results-first"
+        command = <<EOF
+            scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i key root@${digitalocean_droplet.ycsb[count.index].ipv4_address}:/results-first-${count.index} results-first-${count.index}
+        EOF
     }
 }
 
 resource "null_resource" "stop_pd" {
     triggers = {
-        ycsb = "${join(",", digitalocean_droplet.ycsb.*.id)}"
+        ycsb = "${join(",", null_resource.ycsb_first.*.id)}"
     }
-    depends_on = [digitalocean_droplet.ycsb]
+    depends_on = [null_resource.ycsb_first]
 
     connection {
         type     = "ssh"
@@ -302,27 +324,28 @@ resource "null_resource" "ycsb_second" {
 
     provisioner "remote-exec" {
         inline = [
-            "mkdir -p /results-second",
-            "docker run --name=ycsb-second-load-workloada --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloada -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
+            "mkdir -p /results-second-${count.index}",
+            "docker run --name=ycsb-second-load-workloada --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloada -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p insertstart=${floor(var.ycsb_recordcount / var.ycsb_count) * count.index} -p insertcount=${floor(var.ycsb_recordcount / var.ycsb_count)}",
             "docker run --name=ycsb-second-run-workloada --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloada -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
-            "docker logs ycsb-second-load-workloada > /results-second/load-workloada",
-            "docker logs ycsb-second-run-workloada > /results-second/run-workloada",
+            "docker logs ycsb-second-load-workloada > /results-second-${count.index}/load-workloada",
+            "docker logs ycsb-second-run-workloada > /results-second-${count.index}/run-workloada",
             //
-            "docker run --name=ycsb-second-load-workloadb --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloadb -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
+            "docker run --name=ycsb-second-load-workloadb --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloadb -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p insertstart=${floor(var.ycsb_recordcount / var.ycsb_count) * count.index} -p insertcount=${floor(var.ycsb_recordcount / var.ycsb_count)}",
             "docker run --name=ycsb-second-run-workloadb --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloadb -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
-            "docker logs ycsb-second-load-workloadb > /results-second/load-workloadb",
-            "docker logs ycsb-second-run-workloadb > /results-second/run-workloadb",
+            "docker logs ycsb-second-load-workloadb > /results-second-${count.index}/load-workloadb",
+            "docker logs ycsb-second-run-workloadb > /results-second-${count.index}/run-workloadb",
             //
-            "docker run --name=ycsb-second-load-workloadc --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloadc -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
+            "docker run --name=ycsb-second-load-workloadc --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb load tikv -P workloads/workloadc -p dropdata=true -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution} -p insertstart=${floor(var.ycsb_recordcount / var.ycsb_count) * count.index} -p insertcount=${floor(var.ycsb_recordcount / var.ycsb_count)}",
             "docker run --name=ycsb-second-run-workloadc --init --network=host --sysctl net.ipv4.tcp_syncookies=0 --sysctl net.core.somaxconn=32768 pingcap/go-ycsb run tikv -P workloads/workloadc -p verbose=false -p tikv.conncount=${var.ycsb_conncount} -p tikv.type=${var.ycsb_api} -p tikv.batchsize=${var.ycsb_batchsize} -p tikv.pd=${digitalocean_droplet.pd.ipv4_address_private}:2379 -p operationcount=${var.ycsb_operationcount} -p recordcount=${var.ycsb_recordcount} -p threadcount=${var.ycsb_threads} -p fieldcount=${var.ycsb_fieldcount} -p fieldlength=${var.ycsb_fieldlength} -p requestdistribution=${var.ycsb_distribution}",
-            "docker logs ycsb-second-load-workloadc > /results-second/load-workloadc",
-            "docker logs ycsb-second-run-workloadc > /results-second/run-workloadc",
-
+            "docker logs ycsb-second-load-workloadc > /results-second-${count.index}/load-workloadc",
+            "docker logs ycsb-second-run-workloadc > /results-second-${count.index}/run-workloadc",
         ]
     }
 
     provisioner "local-exec" {
-        command = "scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i key root@${digitalocean_droplet.ycsb[count.index].ipv4_address}:/results-second results-second"
+        command = <<EOF
+            scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i key root@${digitalocean_droplet.ycsb[count.index].ipv4_address}:/results-second-${count.index} results-second-${count.index}
+        EOF
     }
     
 }
