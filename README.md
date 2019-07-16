@@ -47,3 +47,10 @@ You can change the docker images benchmarked:
 tikv_image = "you/tikv:latest"
 pd_image = "you/pd:latest"
 ```
+
+You can change the machine sizes as well (find the valid sizes with `doctl compute size list` from the `doctl` utility):
+
+```tf
+tikv_size = "s-4vcpu-8gb"
+pd_size = "s-4vcpu-8gb"
+```
